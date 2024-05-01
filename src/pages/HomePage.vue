@@ -54,8 +54,8 @@ export default {
     activeAddDialog: false,
     dialogLogin: false,
     userAuth: {
-      email: 'karloswarney@gmail.com',
-      password: '12345678'
+      email: '',
+      password: ''
     },
     isLogged: false
   }),
@@ -65,6 +65,11 @@ export default {
       if(loggedUser !== undefined) {
         this.isLogged = true;
         this.repository.conta.setUser(loggedUser);
+        this.dialogLogin = false;
+        this.userAuth = {
+          email: '',
+          password: ''
+        }
       }
     },
     async logout(){
