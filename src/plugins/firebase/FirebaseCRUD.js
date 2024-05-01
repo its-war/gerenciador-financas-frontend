@@ -1,12 +1,14 @@
 import {firebaseApp} from "@/plugins/firebase/index";
 import {useCollection} from "vuefire";
-import {getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc} from "firebase/firestore";
+import {getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, query, where}
+  from "firebase/firestore";
 
 export default class FirebaseCRUD {
   constructor(name) {
     this.tableName = name;
     this.database = getFirestore(firebaseApp);
     this.tableCollection = collection(this.database, this.tableName);
+    this.user = null;
   }
 
   async getAll() {
@@ -24,7 +26,12 @@ export default class FirebaseCRUD {
 
   async getAllInRealTime() {
     try{
-      return await useCollection(this.tableCollection);
+      if(this.isUserDefined()){
+        const q = query(
+          this.tableCollection, where("uid", "==", this.user.uid)
+        );
+        return await useCollection(q);
+      }else return [];
     } catch (e) {
       console.error(e);
     }
@@ -46,6 +53,7 @@ export default class FirebaseCRUD {
 
   async save(documentObject, id = null){
     try{
+      documentObject = {uid: this.user.uid, ...documentObject};
       const documentRef = id ? doc(this.tableCollection, id) : doc(this.tableCollection);
       await setDoc(documentRef, documentObject);
     } catch (e) {
@@ -69,5 +77,13 @@ export default class FirebaseCRUD {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  setUser(user){
+    this.user = user;
+  }
+
+  isUserDefined(){
+    return this.user !== null;
   }
 }

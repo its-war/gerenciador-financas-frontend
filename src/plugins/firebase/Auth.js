@@ -1,5 +1,5 @@
 import {firebaseApp} from "@/plugins/firebase/index";
-import {getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword} from "firebase/auth";
+import {createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut} from "firebase/auth";
 
 export default class Auth {
   constructor() {
@@ -19,6 +19,14 @@ export default class Auth {
     try{
       const result = await signInWithEmailAndPassword(this.auth, email, password);
       return result.user;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async signOut() {
+    try{
+      return await signOut(this.auth);
     } catch (e) {
       console.error(e);
     }
