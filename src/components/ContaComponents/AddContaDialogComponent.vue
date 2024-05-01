@@ -107,6 +107,15 @@ export default {
         quitada: this.dados.aVista
       }
       await this.repository.conta.save(conta);
+      this.dados = {
+        date: new Date().toISOString().substring(0, 10),
+        price: 0.0,
+        isParcelado: false,
+        parcelas: null,
+        description: '',
+        aVista: false
+      };
+      this.activeLocal = false;
     }
   }
 }
