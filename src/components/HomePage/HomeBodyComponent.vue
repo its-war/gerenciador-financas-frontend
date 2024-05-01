@@ -33,13 +33,14 @@
 
     <template v-slot:item.actions="{ item }">
       <v-btn @click="abrirDetalhes(item)" text="Detalhes" color="success" size="small"/>
+      <v-btn @click="abrirDialogApagar(item)" variant="text" icon="mdi-delete" color="error" size="small"/>
     </template>
   </v-data-table>
 
   <v-dialog v-model="dialogDetalhes">
     <v-card>
       <v-card-title>
-        Detalhes da conta {{objDetalhes.id}}
+        Detalhes da conta
         <v-btn icon="mdi-close" variant="text" @click="dialogDetalhes = false"
                style="position: absolute; right: 0; top: 0"/>
       </v-card-title>
@@ -77,6 +78,52 @@
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="dialogApagar">
+    <v-card>
+      <v-card-title>
+        <v-icon icon="mdi-alert" color="yellow"/> Deseja apagar<br/> a conta a seguir?
+        <v-btn icon="mdi-close" variant="text" @click="dialogApagar = false"
+               style="position: absolute; right: 0; top: 0"/>
+      </v-card-title>
+      <v-card-text>
+        <v-table>
+          <tbody>
+          <tr>
+            <td>Data</td>
+            <td>{{getDateFormatted(objDetalhes.fullDate)}}</td>
+          </tr>
+          <tr>
+            <td>Valor</td>
+            <td>
+              {{Number(objDetalhes.price).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}}
+            </td>
+          </tr>
+          <tr>
+            <td>Descrição</td>
+            <td>{{objDetalhes.description}}</td>
+          </tr>
+          <tr v-if="!objDetalhes.aVista">
+            <td>Parcelado</td>
+            <td>{{objDetalhes.isParcelado ? `Sim, em ${objDetalhes.parcelas} vezes` : 'Não'}}</td>
+          </tr>
+          <tr v-if="!objDetalhes.isParcelado">
+            <td>A vista</td>
+            <td>{{objDetalhes.aVista ? 'Sim' : 'Não'}}</td>
+          </tr>
+          <tr>
+            <td>Quitada</td>
+            <td>{{objDetalhes.quitada ? 'Sim' : 'Não'}}</td>
+          </tr>
+          </tbody>
+        </v-table>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="dialogApagar = false">Cancelar</v-btn>
+        <v-btn color="error" @click="apagar">Apagar</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -108,7 +155,8 @@ export default {
       }
     ],
     dialogDetalhes: false,
-    objDetalhes: {}
+    objDetalhes: {},
+    dialogApagar: false
   }),
   methods: {
     addConta(){
@@ -128,6 +176,14 @@ export default {
     },
     async recarregar(){
       this.contas = await this.repository.conta.getAllInRealTime();
+    },
+    async apagar(){
+      await this.repository.conta.delete(this.objDetalhes);
+      this.dialogApagar = false;
+    },
+    abrirDialogApagar(conta){
+      this.dialogApagar = true;
+      this.objDetalhes = {id: conta.id, ...conta}
     }
   },
   emits: ['addConta'],
