@@ -14,6 +14,7 @@
       <v-card>
         <v-card-title>
           Login
+          <v-btn icon="mdi-close" variant="text" style="position: absolute; right: 0; top: 0" @click="dialogLogin = false"/>
         </v-card-title>
         <v-card-text>
           <v-text-field
@@ -21,18 +22,21 @@
             variant="outlined"
             prepend-icon="mdi-email"
             v-model="userAuth.email"
+            @keyup.enter="nextFocus"
           />
           <v-text-field
+            ref="txtSenha"
             label="Senha"
             variant="outlined"
             prepend-icon="mdi-lock"
             type="password"
             v-model="userAuth.password"
+            @keyup.enter="login(true)"
           />
         </v-card-text>
         <v-card-actions>
           <v-spacer/>
-          <v-btn color="primary" @click="login">Login</v-btn>
+          <v-btn :loading="loginLoading" color="success" @click="login">Login</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -57,12 +61,18 @@ export default {
       email: '',
       password: ''
     },
-    isLogged: false
+    isLogged: false,
+    loginLoading: false
   }),
   methods: {
-    async login(){
+    async login(focusOut = false){
+      if(focusOut){
+        this.$refs.txtSenha.blur();
+      }
+      this.loginLoading = true;
       const loggedUser = await this.repository.userAuth.signIn(this.userAuth.email, this.userAuth.password);
       if(loggedUser !== undefined) {
+        localStorage.setItem('loggedUser', JSON.stringify(loggedUser));
         this.isLogged = true;
         this.repository.conta.setUser(loggedUser);
         this.dialogLogin = false;
@@ -71,11 +81,23 @@ export default {
           password: ''
         }
       }
+      this.loginLoading = false;
     },
     async logout(){
       this.isLogged = false;
       await this.repository.userAuth.signOut();
       this.repository.conta.setUser(null);
+      localStorage.removeItem('loggedUser');
+    },
+    nextFocus(){
+      this.$refs.txtSenha.focus();
+    }
+  },
+  created() {
+    const loggedUser = localStorage.getItem('loggedUser');
+    if(loggedUser !== null){
+      this.isLogged = true;
+      this.repository.conta.setUser(JSON.parse(loggedUser));
     }
   }
 }

@@ -62,12 +62,17 @@ export default class FirebaseCRUD {
   }
 
   async edit(documentObject){
-    try{
-      const documentRef = doc(this.tableCollection, documentObject.id);
-      await updateDoc(documentRef, documentObject);
-    } catch (e) {
-      console.error(e);
-    }
+    return new Promise((resolve, reject) => {
+      try{
+        const documentRef = doc(this.tableCollection, documentObject.id);
+        updateDoc(documentRef, documentObject).then(() => {
+          resolve(true);
+        });
+      } catch (e) {
+        console.error(e);
+        reject(false);
+      }
+    });
   }
 
   async delete(documentObject){
@@ -85,5 +90,27 @@ export default class FirebaseCRUD {
 
   isUserDefined(){
     return this.user !== null;
+  }
+
+  /**
+   * @param documentObject
+   * @returns {Promise<boolean>}
+   */
+  async addParcelaPaga(documentObject){
+    documentObject = {uid: this.user.uid, ...documentObject};
+    documentObject.parcelasPaga = documentObject.parcelasPaga + 1;
+    if(documentObject.parcelasPaga >= documentObject.parcelas) documentObject.quitada = true;
+    return await this.edit(documentObject);
+  }
+
+  /**
+   * @param documentObject
+   * @returns {Promise<boolean>}
+   */
+  async removeParcelaPaga(documentObject){
+    documentObject = {uid: this.user.uid, ...documentObject};
+    documentObject.parcelasPaga = documentObject.parcelasPaga - 1;
+    documentObject.quitada = false;
+    return await this.edit(documentObject);
   }
 }
