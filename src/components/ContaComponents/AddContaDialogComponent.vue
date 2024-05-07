@@ -33,6 +33,46 @@
           <v-radio label="Pix" :value="3"/>
         </v-radio-group>
 
+        <v-select
+          v-if="dados.formaPagamento === 2 && cartoes.length > 0"
+          :required="dados.formaPagamento === 2"
+          :items="cartoes"
+          item-title="nome"
+          item-value="id"
+          label="Cartão"
+          variant="outlined"
+          v-model="cartaoSelected"
+          no-data-text="Nenhum cartão cadastrado"
+        />
+
+        <v-checkbox color="primary" v-if="dados.formaPagamento === 2 && cartoes.length <= 0"
+                    :value="true" v-model="isNovoCartao"
+              :label="isNovoCartao ? 'Vou cadastrar meu cartão!' : 'Deseja cadastrar um cartão?'"
+        />
+
+        <fieldset v-if="isNovoCartao" style="padding: 20px; border-radius: 10px">
+          <legend>Novo Cartão de Crédito</legend>
+          <v-text-field
+            required
+            label="Nome"
+            variant="outlined"
+            prepend-icon="mdi-account-credit-card"
+            v-model="cartao.nome"
+          />
+
+          <v-text-field
+            required
+            label="Dia do Fechamento da fatura"
+            variant="outlined"
+            prepend-icon="mdi-calendar"
+            type="number"
+            v-model="cartao.fechamento"
+          />
+
+          <v-btn style="margin-right: 5px" :loading="loading" @click="isNovoCartao = false" append-icon="mdi-cancel" color="red">Cancelar</v-btn>
+          <v-btn :loading="loading" @click="salvarCartao" append-icon="mdi-credit-card-plus" color="success">Adicionar</v-btn>
+        </fieldset>
+
         <v-checkbox color="primary" v-if="!dados.aVista" :value="true" v-model="dados.isParcelado"
               :label="dados.isParcelado ? 'Parcelado!' : 'Esta conta foi parcelada?'"
         />
@@ -84,11 +124,21 @@ export default {
       aVista: false,
       formaPagamento: 1
     },
-    loading: false
+    loading: false,
+    cartaoSelected: null,
+    isNovoCartao: false,
+    cartao: {
+      nome: '',
+      fechamento: null
+    }
   }),
   props: {
     active: {
       type: Boolean,
+      required: true
+    },
+    cartoes: {
+      type: Array,
       required: true
     }
   },
@@ -98,6 +148,16 @@ export default {
     },
     activeLocal(newValue){
       if(!newValue) this.$emit('update:active');
+    },
+    '$props.cartoes':{
+      handler(newValue){
+        if(newValue.length > 0){
+          setTimeout(() => {
+            this.cartaoSelected = newValue[newValue.length - 1].id;
+          }, 500);
+        }
+      },
+      deep: true
     }
   },
   emits: ['update:active'],
@@ -116,7 +176,8 @@ export default {
         parcelasPaga: 0,
         description: this.dados.description,
         quitada: this.dados.aVista,
-        formaPagamento: this.dados.formaPagamento
+        formaPagamento: this.dados.formaPagamento,
+        cartao: this.dados.formaPagamento === 2 ? this.cartaoSelected : null
       }
       await this.repository.conta.save(conta);
       this.dados = {
@@ -130,6 +191,16 @@ export default {
       };
       this.activeLocal = false;
       this.loading = false;
+    },
+    async salvarCartao(){
+      this.loading = true;
+      await this.repository.cartao.save(this.cartao);
+      this.loading = false;
+      this.isNovoCartao = false;
+      this.cartao = {
+        nome: '',
+        fechamento: null
+      }
     }
   }
 }

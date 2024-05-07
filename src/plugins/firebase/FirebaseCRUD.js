@@ -88,29 +88,11 @@ export default class FirebaseCRUD {
     this.user = user;
   }
 
+  getUser(){
+    return this.user;
+  }
+
   isUserDefined(){
     return this.user !== null;
-  }
-
-  /**
-   * @param documentObject
-   * @returns {Promise<boolean>}
-   */
-  async addParcelaPaga(documentObject){
-    documentObject = {uid: this.user.uid, ...documentObject};
-    documentObject.parcelasPaga = documentObject.parcelasPaga + 1;
-    if(documentObject.parcelasPaga >= documentObject.parcelas) documentObject.quitada = true;
-    return await this.edit(documentObject);
-  }
-
-  /**
-   * @param documentObject
-   * @returns {Promise<boolean>}
-   */
-  async removeParcelaPaga(documentObject){
-    documentObject = {uid: this.user.uid, ...documentObject};
-    documentObject.parcelasPaga = documentObject.parcelasPaga - 1;
-    documentObject.quitada = false;
-    return await this.edit(documentObject);
   }
 }

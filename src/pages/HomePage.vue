@@ -40,7 +40,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <AddContaDialogComponent :active="activeAddDialog" @update:active="activeAddDialog = false"/>
+    <AddContaDialogComponent :cartoes="cartoes" :active="activeAddDialog" @update:active="activeAddDialog = false"/>
   </v-main>
   <AppFooter/>
 </template>
@@ -62,7 +62,8 @@ export default {
       password: ''
     },
     isLogged: false,
-    loginLoading: false
+    loginLoading: false,
+    cartoes: []
   }),
   methods: {
     async login(focusOut = false){
@@ -80,6 +81,8 @@ export default {
           email: '',
           password: ''
         }
+        this.repository.cartao.setUser(loggedUser);
+        this.cartoes = await this.repository.cartao.getAllInRealTime();
       }
       this.loginLoading = false;
     },
@@ -87,17 +90,20 @@ export default {
       this.isLogged = false;
       await this.repository.userAuth.signOut();
       this.repository.conta.setUser(null);
+      this.repository.cartao.setUser(null);
       localStorage.removeItem('loggedUser');
     },
     nextFocus(){
       this.$refs.txtSenha.focus();
     }
   },
-  created() {
+  async created() {
     const loggedUser = localStorage.getItem('loggedUser');
     if(loggedUser !== null){
       this.isLogged = true;
       this.repository.conta.setUser(JSON.parse(loggedUser));
+      this.repository.cartao.setUser(JSON.parse(loggedUser));
+      this.cartoes = await this.repository.cartao.getAllInRealTime();
     }
   }
 }
