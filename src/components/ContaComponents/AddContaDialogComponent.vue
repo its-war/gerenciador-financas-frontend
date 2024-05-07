@@ -73,6 +73,11 @@
           <v-btn :loading="loading" @click="salvarCartao" append-icon="mdi-credit-card-plus" color="success">Adicionar</v-btn>
         </fieldset>
 
+        <v-checkbox color="primary" v-if="dados.formaPagamento === 2"
+                    :value="true" v-model="dados.isRecorrente"
+              :label="dados.isRecorrente ? 'Conta recorrente.' : 'Esta conta é recorrente? Ex: Netflix, Pagamento de Aluguel, HBO Max, etc.'"
+        />
+
         <v-checkbox color="primary" v-if="!dados.aVista" :value="true" v-model="dados.isParcelado"
               :label="dados.isParcelado ? 'Parcelado!' : 'Esta conta foi parcelada?'"
         />
@@ -122,7 +127,8 @@ export default {
       parcelas: null,
       description: '',
       aVista: false,
-      formaPagamento: 1
+      formaPagamento: 1,
+      isRecorrente: false
     },
     loading: false,
     cartaoSelected: null,
@@ -177,7 +183,9 @@ export default {
         description: this.dados.description,
         quitada: this.dados.aVista,
         formaPagamento: this.dados.formaPagamento,
-        cartao: this.dados.formaPagamento === 2 ? this.cartaoSelected : null
+        cartao: this.dados.formaPagamento === 2 ? this.cartaoSelected : null,
+        isRecorrente: this.dados.isRecorrente,
+        historicoParcelas: []
       }
       await this.repository.conta.save(conta);
       this.dados = {

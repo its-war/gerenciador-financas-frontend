@@ -274,6 +274,8 @@ export default {
       await this.repository.conta.removeParcelaPaga(this.objDetalhes).then((value) => {
         if(value){
           this.objDetalhes.parcelasPaga = this.objDetalhes.parcelasPaga - 1;
+
+          this.objDetalhes.quitada = this.objDetalhes.parcelasPaga >= this.objDetalhes.parcelas;
         }
       }).finally(() => {
         this.loadingParcelasPaga = false;
