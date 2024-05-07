@@ -1,8 +1,8 @@
 <template>
   <header>
     <v-app-bar>
-      <v-app-bar-title style="font-size: 18px"><v-icon icon="mdi-finance" color="success"/>
-        <span>Finanças Controller</span>
+      <v-app-bar-title style="font-size: 18px"><v-icon icon="mdi-finance" color="red"/>
+        <span>War Finanças</span>
       </v-app-bar-title>
       <v-btn v-if="!isLogged" @click="dialogLogin = true">Login</v-btn>
       <v-btn v-if="isLogged" @click="logout">Sair da Conta</v-btn>
