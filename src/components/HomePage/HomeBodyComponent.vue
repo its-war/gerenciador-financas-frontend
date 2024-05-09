@@ -25,6 +25,13 @@
 
     <template v-slot:item.price="{ item }">
       {{Number(item.price).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}}
+      <v-tooltip open-on-click :location="isMobile?'top':'right'">
+        <template v-slot:activator="{ props }" v-if="item.formaPagamento === 2">
+          <v-icon v-bind="props" icon="mdi-credit-card" color="white"/>
+        </template>
+
+        <p>{{(cartoes.filter((cartao) => cartao.id === item.cartao))[0]?.nome}}</p>
+      </v-tooltip>
     </template>
 
     <template v-slot:item.description="{ item }">
@@ -206,9 +213,9 @@
         </v-table>
       </v-card-text>
       <v-card-actions>
-        <v-tooltip v-model="showMobileTooltipTotalGasto">
+        <v-tooltip open-on-click>
           <template v-slot:activator="{ props }">
-            Ajuda <v-icon v-bind="props" icon="mdi-information" @click="activeTooltipMobile"/>
+            <span v-bind="props">Ajuda <v-icon icon="mdi-information"/></span>
           </template>
 
           <p>
@@ -224,6 +231,12 @@
             - Quando você marca a <b>forma de pagamento</b><br/>
             como 'a vista', o sistema já<br/>
             <b>contabiliza como 'quitada'</b>, seja no cartão ou não.
+          </p>
+
+          <p style="margin-top: 10px">
+            <b style="color: red">IMPORTANTE!</b><br/>
+            Contas feitas na forma de pagamento <b>'Dinheiro'</b> e marcadas como
+            <b>'Parcelado'</b>, NÃO serão contabilizadas no valor 'a vista'.
           </p>
         </v-tooltip>
         <v-spacer/>
@@ -268,8 +281,7 @@ export default {
     loadingParcelasPaga: false,
     loadingDelete: false,
     relatorioDialog: false,
-    relatorioCartaoSelected: null,
-    showMobileTooltipTotalGasto: false
+    relatorioCartaoSelected: null
   }),
   methods: {
     addConta(){
@@ -335,11 +347,6 @@ export default {
       }).finally(() => {
         this.loadingParcelasPaga = false;
       });
-    },
-    activeTooltipMobile(){
-      if(this.isMobile){
-        this.showMobileTooltipTotalGasto = !this.showMobileTooltipTotalGasto;
-      }
     }
   },
   emits: ['addConta'],
@@ -398,7 +405,7 @@ export default {
     totalGastoPix(){
       let total = 0;
       this.contas.forEach(conta => {
-        if(this.relatorioCartaoSelected && conta.cartao === this.relatorioCartaoSelected?.id){
+        if(conta.formaPagamento === 3){
           total += Number(conta.price);
         }
       });

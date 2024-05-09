@@ -20,7 +20,7 @@
       style="position: absolute; right: 16px;"
     >
       &copy; {{ ano }}
-      — Karlos Warney
+      — <a class="author-link" href="https://www.instagram.com/its.war_" target="_blank">Karlos Warney</a>
     </div>
   </v-footer>
 </template>
@@ -54,4 +54,12 @@ const items = [
 
     &:hover
       color: rgba(25, 118, 210, 1)
+
+  .author-link
+    color: rgba(25, 118, 210, 1)
+    text-decoration: none
+    transition: 200ms ease-in-out
+
+    &:hover
+      color: rgb(99, 168, 237)
 </style>

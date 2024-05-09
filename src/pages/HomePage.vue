@@ -1,9 +1,13 @@
 <template>
   <header>
     <v-app-bar>
-      <v-app-bar-title style="font-size: 18px"><v-icon icon="mdi-finance" color="red"/>
-        <span>War Finanças</span>
-      </v-app-bar-title>
+      <v-toolbar-title style="user-select: none">
+        <div class="d-flex" style="align-items: center">
+          <img :src="getLogo" alt="Logo" style="width: 55px; pointer-events: none"/>
+          <span style="cursor: pointer">War Finanças</span>
+        </div>
+      </v-toolbar-title>
+
       <v-btn v-if="!isLogged" @click="dialogLogin = true">Login</v-btn>
 
       <v-menu>
@@ -91,6 +95,7 @@
 import AppFooter from "@/components/HomePage/AppFooter.vue";
 import AddContaDialogComponent from "@/components/ContaComponents/AddContaDialogComponent.vue";
 import HomeBodyComponent from "@/components/HomePage/HomeBodyComponent.vue";
+import logo from "../assets/financas-icon.png";
 
 export default {
   name: "HomePage",
@@ -162,6 +167,15 @@ export default {
       this.repository.conta.setUser(JSON.parse(loggedUser));
       this.repository.cartao.setUser(JSON.parse(loggedUser));
       this.cartoes = await this.repository.cartao.getAllInRealTime();
+    }
+  },
+  computed: {
+    getLogo(){
+      if(logo){
+        return logo;
+      }else{
+        return new File([''], '', {type: 'image/png'});
+      }
     }
   }
 }

@@ -184,18 +184,20 @@ export default {
         quitada: this.dados.aVista,
         formaPagamento: this.dados.formaPagamento,
         cartao: this.dados.formaPagamento === 2 ? this.cartaoSelected : null,
-        isRecorrente: this.dados.isRecorrente,
+        isRecorrente: this.dados.isRecorrente ?? false,
         historicoParcelas: []
       }
       await this.repository.conta.save(conta);
       this.dados = {
-        date: new Date().toISOString().substring(0, 10),
-        price: 0.0,
+        fullDate: new Date().toISOString().substring(0, 10),
+        price: null,
         isParcelado: false,
         parcelas: null,
         description: '',
         aVista: false,
-        formaPagamento: 1
+        formaPagamento: 1,
+        cartao: null,
+        isRecorrente: false
       };
       this.activeLocal = false;
       this.loading = false;
