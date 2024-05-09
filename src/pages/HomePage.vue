@@ -23,7 +23,7 @@
     </v-app-bar>
   </header>
   <v-main>
-    <HomeBodyComponent @addConta="activeAddDialog = true" :is-logged="isLogged"/>
+    <HomeBodyComponent @addConta="activeAddDialog = true" :is-logged="isLogged" :cartoes="cartoes"/>
     <v-dialog v-model="dialogLogin">
       <v-card>
         <v-card-title>
@@ -153,39 +153,6 @@ export default {
         fechamento: null
       }
       this.cartaoLoading = false;
-    },
-    /**
-     * @description Cria um setInterval para chamar a função de verificação de conta
-     */
-    initCheckConta(){
-      setInterval(async () => {
-        for (let i = 0; i < this.cartoes.length; i++) {
-          let id = this.cartoes[i].id;
-          let contas = this.repository.conta.getAllInRealTime();
-          let contasCartao = contas.filter((conta) => conta.cartao === id && conta.quitada === false);
-          for(let j = 0; j < contasCartao.length; j++){
-            let dataAtual = new Date();
-            let fechamentoAtual = new Date(`${this.cartoes[i].fechamento}/${dataAtual.getMonth() + 1}/${dataAtual.getFullYear()}`);
-            if(fechamentoAtual === dataAtual){
-              if(contasCartao[j].isParcelado){
-                if(new Date(contasCartao[j].historicoParcelas[contasCartao[j].historicoParcelas.length - 1]) < fechamentoAtual){
-                  contasCartao[j].parcelasPaga = contasCartao[j].parcelasPaga + 1;
-                  contasCartao[j].quitada = contasCartao[j].parcelasPaga >= contasCartao[j].parcelas;
-                  contasCartao[j].historicoParcelas.push(fechamentoAtual);
-                  await this.repository.conta.edit(contasCartao[j]);
-                }
-              }else{
-                if(contasCartao[j].isRecorrente){
-                  if(new Date(contasCartao[j].historicoParcelas[contasCartao[j].historicoParcelas.length - 1]) < fechamentoAtual){
-                    contasCartao[j].historicoParcelas.push(fechamentoAtual);
-                    await this.repository.conta.edit(contasCartao[j]);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }, 60000);
     }
   },
   async created() {
@@ -195,14 +162,6 @@ export default {
       this.repository.conta.setUser(JSON.parse(loggedUser));
       this.repository.cartao.setUser(JSON.parse(loggedUser));
       this.cartoes = await this.repository.cartao.getAllInRealTime();
-    }
-  },
-  computed:{
-    verifyConta(){
-      if(this.isLogged){
-        this.initCheckConta();
-      }
-      return false;
     }
   }
 }

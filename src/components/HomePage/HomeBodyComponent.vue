@@ -37,7 +37,7 @@
     </template>
 
     <template v-slot:footer.prepend>
-      <v-btn style="margin-left: 15px" text="Relatório" variant="tonal" prepend-icon="mdi-poll" color="primary"/>
+      <v-btn style="margin-left: 15px" text="Relatório" variant="tonal" prepend-icon="mdi-poll" color="primary" @click="relatorioDialog = true"/>
       <v-spacer/>
     </template>
   </v-data-table>
@@ -148,30 +148,45 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="dialogRelatorio">
+  <v-dialog v-model="relatorioDialog">
     <v-card>
       <v-card-title>
-        <v-icon icon="mdi-file-document-multiple-outline"/> Relatório de contas
-        <v-btn icon="mdi-close" variant="text" @click="dialogRelatorio = false" style="position: absolute; right: 0; top: 0"/>
+        Relatório
+        <v-btn icon="mdi-close" variant="text" style="position: absolute; right: 0; top: 0" @click="relatorioDialog = false"/>
       </v-card-title>
       <v-card-text>
         <v-table>
           <tbody>
           <tr>
-            <td>Total de contas</td>
-            <td>{{contas.length}}</td>
+            <td>Gastos em Dinheiro</td>
+            <td>gastos</td>
           </tr>
           <tr>
-            <td>Total em dinheiro</td>
-            <td>valor em dinheiro</td>
+            <td>Gastos no Pix</td>
+            <td>gastos</td>
           </tr>
           <tr>
-            <td>Total parcelado</td>
-            <td>valor em parcelado</td>
+            <td rowspan="2">Gastos no Cartão de Crédito</td>
+            <td style="padding-top: 10px">
+              <v-select
+                :items="cartoes"
+                item-title="nome"
+                item-value="id"
+                label="Selecione o Cartão"
+                variant="outlined"
+                v-model="relatorioCartaoSelected"
+                no-data-text="Nenhum cartão cadastrado"
+              />
+            </td>
           </tr>
           <tr>
-            <td>Total a vista</td>
-            <td>valor em a vista</td>
+            <td>
+              valor no cartão
+            </td>
+          </tr>
+          <tr>
+            <td>Total gasto</td>
+            <td>total</td>
           </tr>
           </tbody>
         </v-table>
@@ -212,9 +227,10 @@ export default {
     objDetalhes: {},
     objDetalhesId: null,
     dialogApagar: false,
-    dialogRelatorio: false,
     loadingParcelasPaga: false,
-    loadingDelete: false
+    loadingDelete: false,
+    relatorioDialog: false,
+    relatorioCartaoSelected: null
   }),
   methods: {
     addConta(){
@@ -289,6 +305,10 @@ export default {
   props: {
     isLogged: {
       type: Boolean,
+      required: true
+    },
+    cartoes: {
+      type: Array,
       required: true
     }
   },

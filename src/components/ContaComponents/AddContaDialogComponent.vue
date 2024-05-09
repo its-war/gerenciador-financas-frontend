@@ -27,9 +27,9 @@
           v-model="dados.price"
         />
 
-        <v-radio-group color="primary" label="Forma de Pagamento" v-model="dados.formaPagamento" direction="horizontal">
+        <v-radio-group @change="eventFormaPagamento" color="primary" label="Forma de Pagamento" v-model="dados.formaPagamento" direction="horizontal">
           <v-radio label="Dinheiro" :value="1"/>
-          <v-radio label="Cartão" :value="2"/>
+          <v-radio label="Cartão de Crédito" :value="2"/>
           <v-radio label="Pix" :value="3"/>
         </v-radio-group>
 
@@ -75,15 +75,15 @@
 
         <v-checkbox color="primary" v-if="dados.formaPagamento === 2"
                     :value="true" v-model="dados.isRecorrente"
-              :label="dados.isRecorrente ? 'Conta recorrente.' : 'Esta conta é recorrente? Ex: Netflix, Pagamento de Aluguel, HBO Max, etc.'"
+              :label="dados.isRecorrente ? 'Conta recorrente.' : 'Esta conta é recorrente? Ex: Netflix, Disney+, HBO Max, etc.'"
         />
 
-        <v-checkbox color="primary" v-if="!dados.aVista" :value="true" v-model="dados.isParcelado"
+        <v-checkbox color="primary" v-if="!dados.aVista && !dados.isRecorrente" :value="true" v-model="dados.isParcelado"
               :label="dados.isParcelado ? 'Parcelado!' : 'Esta conta foi parcelada?'"
         />
 
         <v-text-field
-          v-show="dados.isParcelado && !dados.aVista"
+          v-show="dados.isParcelado && !dados.aVista && !dados.isRecorrente"
           :required="dados.isParcelado"
           label="Quantas parcelas?"
           prepend-icon="mdi-number"
@@ -94,7 +94,7 @@
           :rules="[v => v > 1 || 'Mínimo de 2 parcelas']"
         />
 
-        <v-checkbox color="primary" v-if="!dados.isParcelado" :value="true" v-model="dados.aVista"
+        <v-checkbox color="primary" v-if="!dados.isParcelado && !dados.isRecorrente" :value="true" v-model="dados.aVista"
               :label="dados.aVista ? 'A vista!' : 'Esta conta foi paga a vista?'"
         />
 
@@ -208,6 +208,11 @@ export default {
       this.cartao = {
         nome: '',
         fechamento: null
+      }
+    },
+    eventFormaPagamento(){
+      if(this.dados.formaPagamento !== 2){
+        this.dados.isRecorrente = false;
       }
     }
   }
