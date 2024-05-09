@@ -159,11 +159,11 @@
           <tbody>
           <tr>
             <td>Gastos em Dinheiro</td>
-            <td>gastos</td>
+            <td>{{totalGastoDinheiro.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}}</td>
           </tr>
           <tr>
             <td>Gastos no Pix</td>
-            <td>gastos</td>
+            <td>{{ totalGastoPix.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</td>
           </tr>
           <tr>
             <td rowspan="2">Gastos no Cartão de Crédito</td>
@@ -172,25 +172,63 @@
                 :items="cartoes"
                 item-title="nome"
                 item-value="id"
-                label="Selecione o Cartão"
-                variant="outlined"
+                :prepend-inner-icon="isMobile ? 'mdi-credit-card-outline' : ''"
+                :label="isMobile ? '' : 'Selecione o Cartão'"
+                variant="plain"
                 v-model="relatorioCartaoSelected"
                 no-data-text="Nenhum cartão cadastrado"
-              />
+                return-object
+                single-line>
+                <template v-slot:details v-if="isMobile">
+                  {{this.relatorioCartaoSelected?.nome}}
+                </template>
+              </v-select>
             </td>
           </tr>
           <tr>
             <td>
-              valor no cartão
+              <span v-if="relatorioCartaoSelected">{{ totalGastoCartao.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</span>
             </td>
           </tr>
           <tr>
             <td>Total gasto</td>
-            <td>total</td>
+            <td>{{ totalGasto.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
+          </tr>
+          <tr>
+            <td>Total quitado</td>
+            <td>{{ totalQuitado.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
+          </tr>
+          <tr>
+            <td>Total pendente</td>
+            <td>{{ totalPendente.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
           </tr>
           </tbody>
         </v-table>
       </v-card-text>
+      <v-card-actions>
+        <v-tooltip v-model="showMobileTooltipTotalGasto">
+          <template v-slot:activator="{ props }">
+            Ajuda <v-icon v-bind="props" icon="mdi-information" @click="activeTooltipMobile"/>
+          </template>
+
+          <p>
+            - Conforme você for <b>pagando as parcelas</b><br/>
+            o sistema <b>atualiza automaticamente</b> os valores;
+          </p>
+
+          <p>
+            - <b>Selecione o Cartão de Crédito</b> para mostrar o valor <b>total gasto no cartão</b>;
+          </p>
+
+          <p>
+            - Quando você marca a <b>forma de pagamento</b><br/>
+            como 'a vista', o sistema já<br/>
+            <b>contabiliza como 'quitada'</b>, seja no cartão ou não.
+          </p>
+        </v-tooltip>
+        <v-spacer/>
+        <v-btn prepend-icon="mdi-close" @click="relatorioDialog = false" color="info">Fechar</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
@@ -230,7 +268,8 @@ export default {
     loadingParcelasPaga: false,
     loadingDelete: false,
     relatorioDialog: false,
-    relatorioCartaoSelected: null
+    relatorioCartaoSelected: null,
+    showMobileTooltipTotalGasto: false
   }),
   methods: {
     addConta(){
@@ -296,6 +335,11 @@ export default {
       }).finally(() => {
         this.loadingParcelasPaga = false;
       });
+    },
+    activeTooltipMobile(){
+      if(this.isMobile){
+        this.showMobileTooltipTotalGasto = !this.showMobileTooltipTotalGasto;
+      }
     }
   },
   emits: ['addConta'],
@@ -325,6 +369,69 @@ export default {
     },
     disablePlusBtn(){
       return this.objDetalhes.parcelasPaga >= this.objDetalhes.parcelas;
+    },
+    isMobile(){
+      return this.$vuetify.display.mobile;
+    },
+    totalGastoDinheiro(){
+      let total = 0;
+      this.contas.forEach(conta => {
+        if(conta.formaPagamento === 1){
+          total += Number(conta.price);
+        }
+      });
+      return total;
+    },
+    totalGastoCartao(){
+      let total = 0;
+      let contasCartao = this.contas.filter(conta => conta.formaPagamento === 2);
+      contasCartao.forEach(conta => {
+        if(this.relatorioCartaoSelected && conta.cartao === this.relatorioCartaoSelected?.id){
+          total += Number(conta.price);
+        }
+      });
+      if(this.relatorioCartaoSelected){
+        return total;
+      }
+      return false;
+    },
+    totalGastoPix(){
+      let total = 0;
+      this.contas.forEach(conta => {
+        if(this.relatorioCartaoSelected && conta.cartao === this.relatorioCartaoSelected?.id){
+          total += Number(conta.price);
+        }
+      });
+      return total;
+    },
+    totalGasto(){
+      let total = 0;
+      this.contas.forEach(conta => {
+        total += Number(conta.price);
+      });
+      return total;
+    },
+    totalQuitado(){
+      let total = 0;
+      this.contas.forEach(conta => {
+        if(conta.quitada){
+          total += Number(conta.price);
+        }
+      });
+      return total;
+    },
+    totalPendente(){
+      let total = 0;
+      this.contas.forEach(conta => {
+        if(!conta.quitada){
+          if(conta.isParcelado){
+            total += (Number(conta.price) / conta.parcelas) * (conta.parcelas - conta.parcelasPaga);
+          }else{
+            total += Number(conta.price);
+          }
+        }
+      });
+      return total;
     }
   }
 }
