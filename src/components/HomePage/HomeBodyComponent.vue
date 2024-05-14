@@ -93,14 +93,27 @@
             </tr>
             <tr>
               <td>Quitada</td>
-              <td>{{objDetalhes.quitada ? 'Sim' : 'Não'}}</td>
+              <td :style="objDetalhes.quitada ? 'color: green' : 'color: red'">{{objDetalhes.quitada ? 'Sim' : 'Não'}}</td>
             </tr>
             <tr>
               <td>Descrição</td>
               <td>{{objDetalhes.description}}</td>
             </tr>
+            <tr v-if="!objDetalhes.quitada">
+              <td>Já pagou essa conta?</td>
+              <td>
+                <v-btn color="success" @click="setQuitada" :loading="loadingSetQuitada" prepend-icon="mdi-stamper" variant="text">Quitar</v-btn>
+              </td>
+            </tr>
           </tbody>
         </v-table>
+        <v-alert
+          v-if="showMessagePayment"
+          icon="mdi-check-circle"
+          title="Conta quitada com sucesso!"
+          type="success"
+          variant="tonal"
+        />
       </v-card-text>
       <v-card-actions>
         <v-spacer/>
@@ -162,7 +175,7 @@
         <v-btn icon="mdi-close" variant="text" style="position: absolute; right: 0; top: 0" @click="relatorioDialog = false"/>
       </v-card-title>
       <v-card-text>
-        <v-table>
+        <v-table hover>
           <tbody>
           <tr>
             <td>Gastos em Dinheiro</td>
@@ -199,15 +212,15 @@
           </tr>
           <tr>
             <td>Total gasto</td>
-            <td>{{ totalGasto.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
+            <td>{{ totalGasto.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</td>
           </tr>
           <tr>
             <td>Total quitado</td>
-            <td>{{ totalQuitado.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
+            <td>{{ totalQuitado.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</td>
           </tr>
           <tr>
             <td>Total pendente</td>
-            <td>{{ totalPendente.toLocaleString('pr-BR', {style: 'currency', currency: 'BRL'}) }}</td>
+            <td>{{ totalPendente.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) }}</td>
           </tr>
           </tbody>
         </v-table>
@@ -230,7 +243,7 @@
           <p>
             - Quando você marca a <b>forma de pagamento</b><br/>
             como 'a vista', o sistema já<br/>
-            <b>contabiliza como 'quitada'</b>, seja no cartão ou não.
+            <b>contabiliza como 'quitada'</b>, exceto no cartão de crédito.
           </p>
 
           <p style="margin-top: 10px">
@@ -281,7 +294,9 @@ export default {
     loadingParcelasPaga: false,
     loadingDelete: false,
     relatorioDialog: false,
-    relatorioCartaoSelected: null
+    relatorioCartaoSelected: null,
+    loadingSetQuitada: false,
+    showMessagePayment: false
   }),
   methods: {
     addConta(){
@@ -332,6 +347,13 @@ export default {
 
             this.objDetalhes.quitada = this.objDetalhes.parcelasPaga >= this.objDetalhes.parcelas;
           }
+
+          if(this.objDetalhes.quitada){
+            this.showMessagePayment = true;
+            setTimeout(() => {
+              this.showMessagePayment = false;
+            }, 3000);
+          }
       }).finally(() => {
         this.loadingParcelasPaga = false;
       });
@@ -346,6 +368,23 @@ export default {
         }
       }).finally(() => {
         this.loadingParcelasPaga = false;
+      });
+    },
+    async setQuitada(){
+      this.loadingSetQuitada = true;
+      this.objDetalhes.quitada = true;
+      if(this.objDetalhes.isParcelado){
+        this.objDetalhes.parcelasPaga = this.objDetalhes.parcelas;
+      }
+      await this.repository.conta.edit(this.objDetalhes).then((value) => {
+        if(value){
+          this.showMessagePayment = true;
+          setTimeout(() => {
+            this.showMessagePayment = false;
+          }, 3000);
+        }
+      }).finally(() => {
+        this.loadingSetQuitada = false;
       });
     }
   },

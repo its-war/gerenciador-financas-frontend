@@ -1,6 +1,6 @@
 import {firebaseApp} from "@/plugins/firebase/index";
 import {useCollection} from "vuefire";
-import {getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, query, where}
+import {getFirestore, collection, getDocs, getDoc, doc, setDoc, updateDoc, deleteDoc, query, where, orderBy}
   from "firebase/firestore";
 
 export default class FirebaseCRUD {
@@ -28,7 +28,8 @@ export default class FirebaseCRUD {
     try{
       if(this.isUserDefined()){
         const q = query(
-          this.tableCollection, where("uid", "==", this.user.uid)
+          this.tableCollection, where("uid", "==", this.user.uid),
+          orderBy('fullDate', 'desc')
         );
         return await useCollection(q);
       }else return [];

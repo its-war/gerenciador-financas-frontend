@@ -181,7 +181,7 @@ export default {
         parcelas: this.dados.parcelas,
         parcelasPaga: 0,
         description: this.dados.description,
-        quitada: this.dados.aVista,
+        quitada: this.dados.aVista && this.dados.formaPagamento !== 2,
         formaPagamento: this.dados.formaPagamento,
         cartao: this.dados.formaPagamento === 2 ? this.cartaoSelected : null,
         isRecorrente: this.dados.isRecorrente ?? false,
