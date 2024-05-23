@@ -51,6 +51,23 @@
 
   <h1 style="text-align: center; margin-top: 25px" v-else>Conteúdo disponível apenas após efetuar login.</h1>
 
+  <v-file-input v-if="isLogged"
+                style="margin: 20px auto 0; width: 90%; border-radius: 10px"
+                label="Selecione a foto..."
+                prepend-icon="mdi-image"
+                v-model="uploadFoto"
+                :show-size="1000"
+                accept="image/*"
+                counter
+                variant="outlined"
+                color="info"
+  />
+
+  <v-btn v-if="isLogged && uploadFoto" style="margin: 20px auto 0;" color="success" @click="upload" prepend-icon="mdi-upload" text="Enviar"/>
+
+  * Em testes, por favor, não use!
+
+
   <v-dialog v-model="dialogDetalhes">
     <v-card>
       <v-card-title>
@@ -296,7 +313,9 @@ export default {
     relatorioDialog: false,
     relatorioCartaoSelected: null,
     loadingSetQuitada: false,
-    showMessagePayment: false
+    showMessagePayment: false,
+    uploadFoto: null,
+    loadingUpload: false
   }),
   methods: {
     addConta(){
@@ -385,6 +404,48 @@ export default {
         }
       }).finally(() => {
         this.loadingSetQuitada = false;
+      });
+    },
+    async upload(){
+      this.loadingUpload = true;
+      if(this.uploadFoto.name.endsWith('.jpg') || this.uploadFoto.name.endsWith('.jpeg')){
+        const url = await this.repository.storage.upload(this.repository.conta.getUser().uid, this.uploadFoto);
+        console.log(url);
+      }else{
+        this.convertToJpeg(this.uploadFoto).then((value) => {
+          const url = this.repository.storage.upload(this.repository.conta.getUser().uid, value);
+          console.log(url);
+        })
+      }
+      this.uploadFoto = null;
+      this.loadingUpload = false;
+    },
+    download(){
+      this.repository.storage.download(this.repository.conta.getUser().uid);
+    },
+    convertToJpeg(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob((blob) => {
+              resolve(blob);
+            }, 'image/jpeg', 0.95);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
       });
     }
   },

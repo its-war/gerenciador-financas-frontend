@@ -2,7 +2,8 @@
 import vuetify from './vuetify';
 import { createPinia } from 'pinia'
 import router from '@/router';
-import {firebaseApp, install as Firebase} from '@/plugins/firebase';
+import {firebaseApp} from '@/plugins/firebase';
+import Firebase from '@/plugins/firebase/install';
 import {VueFire, VueFireFirestoreOptionsAPI, VueFireAuth } from "vuefire";
 
 export function registerPlugins (app) {

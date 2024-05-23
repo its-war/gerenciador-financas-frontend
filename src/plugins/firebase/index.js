@@ -1,7 +1,4 @@
 import {initializeApp} from "firebase/app";
-import FirebaseCRUD from "@/plugins/firebase/FirebaseCRUD";
-import Auth from "@/plugins/firebase/Auth";
-import Conta from "@/plugins/firebase/Conta";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
@@ -14,11 +11,3 @@ const firebaseConfig = {
 };
 
 export const firebaseApp = initializeApp(firebaseConfig);
-
-export function install(app) {
-  app.provide('repository', {
-    conta: new Conta(),
-    userAuth: new Auth(),
-    cartao: new FirebaseCRUD('cartoes')
-  });
-}
